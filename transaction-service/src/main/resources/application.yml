@@ -1,0 +1,12 @@
+server:
+  port: 10002
+spring:
+  datasource:
+    url: jdbc:postgresql://localhost:5432/Bank
+    username: postgres
+    password: waleed544
+    driver-class-name: org.postgresql.Driver
+  jpa:
+    hibernate:
+      ddl-auto: update
+
