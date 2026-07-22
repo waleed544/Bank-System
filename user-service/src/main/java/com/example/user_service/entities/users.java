@@ -56,4 +56,7 @@ public class users {
     @Column(name = "updated_at", nullable = false)
     private LocalDateTime updatedAt;
 
+    public UUID getId() {
+        return userId;
+    }
 }
