@@ -8,10 +8,4 @@ spring:
     driver-class-name: org.postgresql.Driver
   jpa:
     hibernate:
-      ddl-auto: update
-    properties:
-      hibernate:
-        default_schema: user_service
-        ai:
-          openai:
-            api-key: sk-placeholder-not-real
+      ddl-auto: create-drop
