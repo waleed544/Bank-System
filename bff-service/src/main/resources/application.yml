@@ -1,0 +1,10 @@
+server:
+  port: 10005
+
+services:
+  user-service:
+    base-url: http://localhost:10001
+  account-service:
+    base-url: http://localhost:10000
+  transaction-service:
+    base-url: http://localhost:10002
