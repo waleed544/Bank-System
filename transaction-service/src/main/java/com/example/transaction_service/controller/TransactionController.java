@@ -26,8 +26,8 @@ public class TransactionController {
     public ResponseEntity<TransferInitiationResponse> initiateTransfer(
             @Valid @RequestBody TransferInitiationRequest request) {
 
-        return ResponseEntity.status(HttpStatus.CREATED)
-                .body(transactionService.initiateTransfer(request));
+        return ResponseEntity.ok(
+                transactionService.initiateTransfer(request));
     }
 
     @PostMapping("/transactions/transfer/execution")
