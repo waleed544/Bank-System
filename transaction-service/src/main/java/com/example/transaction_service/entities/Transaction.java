@@ -1,4 +1,4 @@
-package com.example.transaction_service.enities;
+package com.example.transaction_service.entities;
 
 
 import jakarta.persistence.*;
@@ -15,14 +15,18 @@ import java.time.LocalDateTime;
 import java.util.UUID;
 
 @Entity
-@Table(name = "transactions")
+@Table(name = "transactions", indexes = {
+        @Index(name = "idx_transaction_from_account", columnList = "from_account_id"),
+        @Index(name = "idx_transaction_to_account", columnList = "to_account_id"),
+        @Index(name = "idx_transaction_status", columnList = "status")
+})
 @Getter
 @Setter
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
 
-public class transactionEntity {
+public class Transaction {
     @Id
     @GeneratedValue(strategy = GenerationType.UUID)
     @Column(name = "transaction_id", updatable = false, nullable = false)
@@ -59,4 +63,11 @@ public class transactionEntity {
     @Column(name = "updated_at", nullable = false)
     private LocalDateTime updatedAt;
 
+    public UUID getId() {
+        return transactionId;
+    }
+
+    public LocalDateTime getTimestamp() {
+        return createdAt;
+    }
 }

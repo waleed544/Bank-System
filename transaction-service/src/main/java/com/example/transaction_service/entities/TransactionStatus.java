@@ -1,4 +1,4 @@
-package com.example.transaction_service.enities;
+package com.example.transaction_service.entities;
 
 public enum TransactionStatus {
     INITIATED,
