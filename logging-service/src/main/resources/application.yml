@@ -10,7 +10,7 @@ spring:
 
   jpa:
     hibernate:
-      ddl-auto: create-drop
+      ddl-auto: create-drop   # use update instead of create-drop
     show-sql: true
     properties:
       hibernate:
@@ -19,3 +19,14 @@ spring:
   ai:
     openai:
       api-key: sk-placeholder-not-real
+
+  kafka:
+    bootstrap-servers: localhost:9092
+
+    consumer:
+      group-id: logging-group
+      auto-offset-reset: earliest
+
+      properties:
+        spring.json.trusted.packages: "*"
+        spring.json.value.default.type: com.example.logging_service.dto.LogMessage

@@ -9,3 +9,11 @@ spring:
   jpa:
     hibernate:
       ddl-auto: create-drop
+
+  kafka:
+    bootstrap-servers: localhost:9092
+
+    producer:
+      properties:
+        spring.json.add.type.headers: false
+
