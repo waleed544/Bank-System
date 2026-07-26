@@ -7,17 +7,21 @@
         <sourceOutputDir name="target/generated-sources/annotations" />
         <sourceTestOutputDir name="target/generated-test-sources/test-annotations" />
         <outputRelativeToContentRoot value="true" />
+        <module name="account-service (1)" />
         <module name="transaction-service" />
+        <module name="account-service (2)" />
         <module name="user-service" />
         <module name="account-service" />
         <module name="logging-service" />
+        <module name="account-service (3)" />
+        <module name="account-service (4)" />
       </profile>
-      <profile name="Annotation profile for BFF-service" enabled="true">
+      <profile name="Annotation profile for bff-service" enabled="true">
         <sourceOutputDir name="target/generated-sources/annotations" />
         <sourceTestOutputDir name="target/generated-test-sources/test-annotations" />
         <outputRelativeToContentRoot value="true" />
         <processorPath useClasspath="false">
-          <entry name="$MAVEN_REPOSITORY$/org/projectlombok/lombok/1.18.46/lombok-1.18.46.jar" />
+          <entry name="$MAVEN_REPOSITORY$/org/projectlombok/lombok/1.18.38/lombok-1.18.38.jar" />
         </processorPath>
         <module name="bff-service" />
       </profile>
@@ -26,6 +30,10 @@
   <component name="JavacSettings">
     <option name="ADDITIONAL_OPTIONS_OVERRIDE">
       <module name="account-service" options="-parameters" />
+      <module name="account-service (1)" options="-parameters" />
+      <module name="account-service (2)" options="-parameters" />
+      <module name="account-service (3)" options="-parameters" />
+      <module name="account-service (4)" options="-parameters" />
       <module name="bff-service" options="-parameters" />
       <module name="logging-service" options="-parameters" />
       <module name="transaction-service" options="-parameters" />

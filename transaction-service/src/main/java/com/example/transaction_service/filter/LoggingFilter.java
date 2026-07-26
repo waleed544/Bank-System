@@ -27,6 +27,32 @@ public class LoggingFilter implements Filter {
             ServletResponse response,
             FilterChain chain)
             throws IOException, ServletException {
+        HttpServletRequest req = (HttpServletRequest) request;
+//        String path = req.getRequestURI();
+//
+//        if (path.startsWith("/swagger-ui")
+//                || path.contains(".css")
+//                || path.contains(".png")
+//                || path.contains(".svg")
+//                || path.contains(".ico")
+//                || path.startsWith("/v3/api-docs")
+//                || path.startsWith("/webjars")
+//                || path.startsWith("/favicon.ico")) {
+//
+//            chain.doFilter(request, response);
+//            return;
+//        }
+        String path = req.getRequestURI();
+
+        if (!(path.startsWith("/users")
+                || path.startsWith("/accounts")
+                || path.startsWith("/transactions"))) {
+
+            chain.doFilter(request, response);
+            return;
+        }
+
+
 
         ContentCachingRequestWrapper requestWrapper =
                 new ContentCachingRequestWrapper((HttpServletRequest) request);
