@@ -4,7 +4,7 @@ spring:
   datasource:
     url: jdbc:postgresql://localhost:5432/Bank
     username: postgres
-    password: waleed544
+    password: ${DB_PASSWORD:changeme}
     driver-class-name: org.postgresql.Driver
   jpa:
     hibernate:
@@ -13,4 +13,7 @@ spring:
   kafka:
     bootstrap-servers: localhost:9092
 
+services:
+  account-service:
+    base-url: http://localhost:10000
 

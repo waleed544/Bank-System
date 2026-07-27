@@ -1,0 +1,153 @@
+version: "3.9"
+
+services:
+
+  postgres:
+    image: postgres:16-alpine
+    container_name: bank-postgres
+    environment:
+      POSTGRES_DB: Bank
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: ${DB_PASSWORD}
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres-data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres -d Bank"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+    networks:
+      - bank-network
+
+  kafka:
+    image: bitnami/kafka:3.7
+    container_name: bank-kafka
+    environment:
+      # KRaft mode - no Zookeeper needed
+      KAFKA_CFG_NODE_ID: 0
+      KAFKA_CFG_PROCESS_ROLES: controller,broker
+      KAFKA_CFG_CONTROLLER_QUORUM_VOTERS: 0@kafka:9093
+      KAFKA_CFG_LISTENERS: PLAINTEXT://:9092,CONTROLLER://:9093
+      KAFKA_CFG_ADVERTISED_LISTENERS: PLAINTEXT://kafka:9092
+      KAFKA_CFG_LISTENER_SECURITY_PROTOCOL_MAP: CONTROLLER:PLAINTEXT,PLAINTEXT:PLAINTEXT
+      KAFKA_CFG_CONTROLLER_LISTENER_NAMES: CONTROLLER
+      KAFKA_CFG_AUTO_CREATE_TOPICS_ENABLE: "true"
+      ALLOW_PLAINTEXT_LISTENER: "yes"
+    ports:
+      - "9092:9092"
+    volumes:
+      - kafka-data:/bitnami/kafka
+    healthcheck:
+      test: ["CMD-SHELL", "kafka-topics.sh --bootstrap-server localhost:9092 --list"]
+      interval: 10s
+      timeout: 10s
+      retries: 10
+      start_period: 20s
+    networks:
+      - bank-network
+
+  user-service:
+    build:
+      context: ./user-service
+    container_name: bank-user-service
+    ports:
+      - "10001:10001"
+    environment:
+      SPRING_DATASOURCE_URL: jdbc:postgresql://postgres:5432/Bank
+      SPRING_DATASOURCE_USERNAME: postgres
+      SPRING_DATASOURCE_PASSWORD: ${DB_PASSWORD}
+      SPRING_KAFKA_BOOTSTRAP_SERVERS: kafka:9092
+    depends_on:
+      postgres:
+        condition: service_healthy
+      kafka:
+        condition: service_healthy
+    networks:
+      - bank-network
+
+  account-service:
+    build:
+      context: ./account-service
+    container_name: bank-account-service
+    ports:
+      - "10000:10000"
+    environment:
+      SPRING_DATASOURCE_URL: jdbc:postgresql://postgres:5432/Bank
+      SPRING_DATASOURCE_USERNAME: postgres
+      SPRING_DATASOURCE_PASSWORD: ${DB_PASSWORD}
+      SPRING_KAFKA_BOOTSTRAP_SERVERS: kafka:9092
+    depends_on:
+      postgres:
+        condition: service_healthy
+      kafka:
+        condition: service_healthy
+    networks:
+      - bank-network
+
+  transaction-service:
+    build:
+      context: ./transaction-service
+    container_name: bank-transaction-service
+    ports:
+      - "10002:10002"
+    environment:
+      SPRING_DATASOURCE_URL: jdbc:postgresql://postgres:5432/Bank
+      SPRING_DATASOURCE_USERNAME: postgres
+      SPRING_DATASOURCE_PASSWORD: ${DB_PASSWORD}
+      SPRING_KAFKA_BOOTSTRAP_SERVERS: kafka:9092
+      SERVICES_ACCOUNT_SERVICE_BASE_URL: http://account-service:10000
+    depends_on:
+      postgres:
+        condition: service_healthy
+      kafka:
+        condition: service_healthy
+      account-service:
+        condition: service_started
+    networks:
+      - bank-network
+
+  logging-service:
+    build:
+      context: ./logging-service
+    container_name: bank-logging-service
+    ports:
+      - "10003:10003"
+    environment:
+      SPRING_DATASOURCE_URL: jdbc:postgresql://postgres:5432/Bank
+      SPRING_DATASOURCE_USERNAME: postgres
+      SPRING_DATASOURCE_PASSWORD: ${DB_PASSWORD}
+      SPRING_KAFKA_BOOTSTRAP_SERVERS: kafka:9092
+    depends_on:
+      postgres:
+        condition: service_healthy
+      kafka:
+        condition: service_healthy
+    networks:
+      - bank-network
+
+  bff-service:
+    build:
+      context: ./bff-service
+    container_name: bank-bff-service
+    ports:
+      - "10005:10005"
+    environment:
+      SERVICES_USER_SERVICE_BASE_URL: http://user-service:10001
+      SERVICES_ACCOUNT_SERVICE_BASE_URL: http://account-service:10000
+      SERVICES_TRANSACTION_SERVICE_BASE_URL: http://transaction-service:10002
+    depends_on:
+      - user-service
+      - account-service
+      - transaction-service
+    networks:
+      - bank-network
+
+networks:
+  bank-network:
+    driver: bridge
+
+volumes:
+  postgres-data:
+  kafka-data:

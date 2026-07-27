@@ -1,0 +1,15 @@
+# Environment / secrets
+.env
+
+# Build output
+target/
+*.class
+
+# IDE
+.idea/
+*.iml
+out/
+
+# OS
+.DS_Store
+Thumbs.db
