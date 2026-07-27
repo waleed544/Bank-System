@@ -7,6 +7,7 @@ import com.example.user_service.dto.RegisterRequest;
 import com.example.user_service.dto.RegisterResponse;
 import com.example.user_service.dto.UserProfileResponse;
 import com.example.user_service.services.UserService;
+import jakarta.validation.Valid;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -25,7 +26,7 @@ public class UserController {
 
     @PostMapping("/register")
     public ResponseEntity<RegisterResponse> register(
-            @RequestBody RegisterRequest request) {
+           @Valid @RequestBody RegisterRequest request) {
 
         RegisterResponse response = userService.register(request);
 
@@ -34,7 +35,7 @@ public class UserController {
 
     @PostMapping("/login")
     public ResponseEntity<LoginResponse> login(
-            @RequestBody LoginRequest request) {
+            @Valid @RequestBody LoginRequest request) {
 
         LoginResponse response = userService.login(request);
 
