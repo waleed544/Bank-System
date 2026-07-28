@@ -14,10 +14,20 @@ import org.springframework.web.util.ContentCachingResponseWrapper;
 
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 @Component
 @RequiredArgsConstructor
 public class LoggingFilter implements Filter {
+
+    private static final String SERVICE_NAME = "user-service";
+
+    // Matches "fieldName": "anyValue" for any field name in the list below,
+    // case-insensitive, so the value can be masked before it ever reaches Kafka.
+    private static final Pattern SENSITIVE_FIELD_PATTERN = Pattern.compile(
+            "(\"(?:password|passwordHash|token|secret)\"\\s*:\\s*)\"[^\"]*\"",
+            Pattern.CASE_INSENSITIVE);
 
     private final LogProducer producer;
 
@@ -27,21 +37,8 @@ public class LoggingFilter implements Filter {
             ServletResponse response,
             FilterChain chain)
             throws IOException, ServletException {
+
         HttpServletRequest req = (HttpServletRequest) request;
-//        String path = req.getRequestURI();
-//
-//        if (path.startsWith("/swagger-ui")
-//                || path.contains(".css")
-//                || path.contains(".png")
-//                || path.contains(".svg")
-//                || path.contains(".ico")
-//                || path.startsWith("/v3/api-docs")
-//                || path.startsWith("/webjars")
-//                || path.startsWith("/favicon.ico")) {
-//
-//            chain.doFilter(request, response);
-//            return;
-//        }
         String path = req.getRequestURI();
 
         if (!(path.startsWith("/users")
@@ -52,10 +49,8 @@ public class LoggingFilter implements Filter {
             return;
         }
 
-
-
         ContentCachingRequestWrapper requestWrapper =
-                new ContentCachingRequestWrapper((HttpServletRequest) request);
+                new ContentCachingRequestWrapper(req);
 
         ContentCachingResponseWrapper responseWrapper =
                 new ContentCachingResponseWrapper(
@@ -69,9 +64,9 @@ public class LoggingFilter implements Filter {
 
         if (!requestBody.isBlank()) {
             producer.send(
-                    "transaction-service",
+                    SERVICE_NAME,
                     "Request",
-                    requestBody
+                    maskSensitiveFields(requestBody)
             );
         }
 
@@ -81,12 +76,26 @@ public class LoggingFilter implements Filter {
 
         if (!responseBody.isBlank()) {
             producer.send(
-                    "transaction-service",
+                    SERVICE_NAME,
                     "Response",
-                    responseBody
+                    maskSensitiveFields(responseBody)
             );
         }
 
         responseWrapper.copyBodyToResponse();
+    }
+
+    /**
+     * Replaces the value of any sensitive field (password, passwordHash, token, secret)
+     * with a masked placeholder before the body is ever sent to Kafka / persisted to log_dump.
+     * The field name and JSON structure are preserved; only the value is redacted.
+     */
+    private String maskSensitiveFields(String rawBody) {
+        if (rawBody == null || rawBody.isBlank()) {
+            return rawBody;
+        }
+
+        Matcher matcher = SENSITIVE_FIELD_PATTERN.matcher(rawBody);
+        return matcher.replaceAll(mr -> Matcher.quoteReplacement(mr.group(1) + "\"***MASKED***\""));
     }
 }
