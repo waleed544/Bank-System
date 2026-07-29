@@ -14,10 +14,10 @@
 	</parent>
 
 	<groupId>com.example</groupId>
-	<artifactId>account-service</artifactId>
+	<artifactId>transaction-service</artifactId>
 	<version>0.0.1-SNAPSHOT</version>
-	<name>account-service</name>
-	<description>Account Service</description>
+	<name>transaction-service</name>
+	<description>Transaction Service</description>
 
 	<properties>
 		<java.version>21</java.version>
