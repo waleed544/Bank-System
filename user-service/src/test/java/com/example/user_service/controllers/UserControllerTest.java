@@ -1,11 +1,13 @@
 package com.example.user_service.controllers;
 
+import com.example.user_service.config.allowReq;
 import com.example.user_service.dto.LoginResponse;
 import com.example.user_service.dto.RegisterResponse;
 import com.example.user_service.services.UserService;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
+import org.springframework.context.annotation.Import;
 import org.springframework.http.MediaType;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
@@ -19,6 +21,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 @WebMvcTest(UserController.class)
+@Import(allowReq.class)
 class UserControllerTest {
 
     @Autowired
@@ -26,6 +29,9 @@ class UserControllerTest {
 
     @MockitoBean
     private UserService userService;
+
+    @MockitoBean
+    private com.example.user_service.kafka.LogProducer logProducer;
 
     // ---------- POST /users/register ----------
 

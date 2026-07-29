@@ -32,6 +32,9 @@ class TransactionControllerTest {
     @MockitoBean
     private TransactionService transactionService;
 
+    @MockitoBean
+    private com.example.transaction_service.kafka.LogProducer logProducer;
+
     // ---------- POST /transactions/transfer/initiation ----------
 
     @Test

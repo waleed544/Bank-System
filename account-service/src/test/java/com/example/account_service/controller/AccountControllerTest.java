@@ -37,6 +37,9 @@ class AccountControllerTest {
     @MockitoBean
     private AccountService accountService;
 
+    @MockitoBean
+    private com.example.account_service.kafka.LogProducer logProducer;
+
     // ---------- POST /accounts ----------
 
     @Test
