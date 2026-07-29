@@ -1,0 +1,272 @@
+{
+  "info": {
+    "name": "Virtual Bank System - Full Stack Flow",
+    "description": "Real end-to-end pass through docker-compose: register user, create two accounts, initiate + execute a transfer through transaction-service (which calls account-service for real over HTTP), verify balances, verify the transaction log, and verify the BFF dashboard. Run top to bottom with 'Run collection' - each request captures IDs into collection variables for the next one.",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "variable": [
+    { "key": "userServiceUrl", "value": "http://localhost:10001" },
+    { "key": "accountServiceUrl", "value": "http://localhost:10000" },
+    { "key": "transactionServiceUrl", "value": "http://localhost:10002" },
+    { "key": "bffServiceUrl", "value": "http://localhost:10005" },
+    { "key": "userId", "value": "" },
+    { "key": "accountAId", "value": "" },
+    { "key": "accountBId", "value": "" },
+    { "key": "transactionId", "value": "" }
+  ],
+  "item": [
+    {
+      "name": "1. User Service",
+      "item": [
+        {
+          "name": "Register user",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "url": "{{userServiceUrl}}/users/register",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"username\": \"hussein_test\",\n  \"password\": \"SuperSecret123\",\n  \"email\": \"hussein.test@example.com\",\n  \"firstName\": \"Hussein\",\n  \"lastName\": \"Hossam\"\n}"
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status is 201', () => pm.response.to.have.status(201));",
+                  "const body = pm.response.json();",
+                  "pm.test('userId is present', () => pm.expect(body.userId).to.be.a('string'));",
+                  "pm.collectionVariables.set('userId', body.userId);"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Login",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "url": "{{userServiceUrl}}/users/login",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"username\": \"hussein_test\",\n  \"password\": \"SuperSecret123\"\n}"
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status is 200', () => pm.response.to.have.status(200));",
+                  "const body = pm.response.json();",
+                  "pm.test('userId matches registered user', () => pm.expect(body.userId).to.eql(pm.collectionVariables.get('userId')));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Get profile",
+          "request": {
+            "method": "GET",
+            "url": "{{userServiceUrl}}/users/{{userId}}/profile"
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": { "exec": ["pm.test('Status is 200', () => pm.response.to.have.status(200));"] }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "2. Account Service",
+      "item": [
+        {
+          "name": "Create Account A (checking, 1000)",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "url": "{{accountServiceUrl}}/accounts",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"userId\": \"{{userId}}\",\n  \"accountType\": \"CHECKING\",\n  \"initialBalance\": 1000\n}"
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status is 201', () => pm.response.to.have.status(201));",
+                  "const body = pm.response.json();",
+                  "pm.collectionVariables.set('accountAId', body.accountId);"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Create Account B (savings, 200)",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "url": "{{accountServiceUrl}}/accounts",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"userId\": \"{{userId}}\",\n  \"accountType\": \"SAVINGS\",\n  \"initialBalance\": 200\n}"
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status is 201', () => pm.response.to.have.status(201));",
+                  "const body = pm.response.json();",
+                  "pm.collectionVariables.set('accountBId', body.accountId);"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Get Account A (before transfer, expect 1000)",
+          "request": { "method": "GET", "url": "{{accountServiceUrl}}/accounts/{{accountAId}}" },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status is 200', () => pm.response.to.have.status(200));",
+                  "pm.test('Balance is 1000', () => pm.expect(pm.response.json().balance).to.eql(1000));"
+                ]
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "3. Transaction Service (real network call to Account Service)",
+      "item": [
+        {
+          "name": "Initiate transfer A -> B, amount 150",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "url": "{{transactionServiceUrl}}/transactions/transfer/initiation",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"fromAccountId\": \"{{accountAId}}\",\n  \"toAccountId\": \"{{accountBId}}\",\n  \"amount\": 150,\n  \"description\": \"Postman full-stack test transfer\"\n}"
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status is 200', () => pm.response.to.have.status(200));",
+                  "const body = pm.response.json();",
+                  "pm.test('status is INITIATED', () => pm.expect(body.status).to.eql('INITIATED'));",
+                  "pm.collectionVariables.set('transactionId', body.transactionId);"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Execute transfer (real HTTP call: Transaction -> Account)",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "url": "{{transactionServiceUrl}}/transactions/transfer/execution",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"transactionId\": \"{{transactionId}}\"\n}"
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status is 200', () => pm.response.to.have.status(200));",
+                  "pm.test('status is SUCCESS', () => pm.expect(pm.response.json().status).to.eql('SUCCESS'));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Get transactions for Account A",
+          "request": { "method": "GET", "url": "{{transactionServiceUrl}}/accounts/{{accountAId}}/transactions" },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status is 200', () => pm.response.to.have.status(200));",
+                  "pm.test('has at least one transaction', () => pm.expect(pm.response.json().length).to.be.above(0));"
+                ]
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "4. Verify real balances moved (Account Service)",
+      "item": [
+        {
+          "name": "Get Account A (after transfer, expect 850)",
+          "request": { "method": "GET", "url": "{{accountServiceUrl}}/accounts/{{accountAId}}" },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status is 200', () => pm.response.to.have.status(200));",
+                  "pm.test('Balance is 850', () => pm.expect(pm.response.json().balance).to.eql(850));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Get Account B (after transfer, expect 350)",
+          "request": { "method": "GET", "url": "{{accountServiceUrl}}/accounts/{{accountBId}}" },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status is 200', () => pm.response.to.have.status(200));",
+                  "pm.test('Balance is 350', () => pm.expect(pm.response.json().balance).to.eql(350));"
+                ]
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "5. BFF Dashboard (aggregates User + Account + Transaction)",
+      "item": [
+        {
+          "name": "Get dashboard for user",
+          "request": { "method": "GET", "url": "{{bffServiceUrl}}/bff/dashboard/{{userId}}" },
+          "event": [
+            {
+              "listen": "test",
+              "script": { "exec": ["pm.test('Status is 200', () => pm.response.to.have.status(200));"] }
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

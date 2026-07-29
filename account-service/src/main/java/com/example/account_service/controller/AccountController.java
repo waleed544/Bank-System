@@ -8,6 +8,7 @@ import com.example.account_service.entities.AccountType;
 import com.example.account_service.entities.accounts;
 import com.example.account_service.repositories.AccountRepository;
 import com.example.account_service.services.AccountService;
+import jakarta.validation.Valid;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -27,7 +28,7 @@ public class AccountController {
 
     @PostMapping("/accounts")
     public ResponseEntity<CreateAccountResponse> createAccount(
-            @RequestBody CreateAccountRequest request) {
+            @Valid @RequestBody CreateAccountRequest request) {
 
         return ResponseEntity.status(HttpStatus.CREATED)
                 .body(accountService.createAccount(request));
@@ -53,7 +54,7 @@ public class AccountController {
 
     @PutMapping("/accounts/transfer")
     public ResponseEntity<MessageResponse> transfer(
-            @RequestBody TransferRequest request) {
+           @Valid @RequestBody TransferRequest request) {
 
         return ResponseEntity.ok(
                 accountService.transfer(request)

@@ -1,1 +1,22 @@
 /keys
+
+# Environment / secrets
+.env
+
+# Build output
+target/
+*.class
+
+# IDE
+.idea/
+*.iml
+out/
+
+# OS
+.DS_Store
+Thumbs.db
+account-logs.txt
+bff-logs.txt
+build-output.txt
+compose-config-output.txt
+transaction-logs.txt

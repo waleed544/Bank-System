@@ -2,15 +2,18 @@ server:
   port: 10002
 spring:
   datasource:
-    url: jdbc:postgresql://localhost:5432/Bank
+    url: jdbc:postgresql://localhost:5433/Bank
     username: postgres
-    password: waleed544
+    password: ${DB_PASSWORD:changeme}
     driver-class-name: org.postgresql.Driver
   jpa:
     hibernate:
-      ddl-auto: create-drop
+      ddl-auto: update
 
   kafka:
     bootstrap-servers: localhost:9092
 
+services:
+  account-service:
+    base-url: http://localhost:10000
 
