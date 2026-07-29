@@ -4,6 +4,9 @@ import com.example.account_service.DTO.AccountResponse;
 import com.example.account_service.DTO.CreateAccountRequest;
 import com.example.account_service.DTO.CreateAccountResponse;
 import com.example.account_service.DTO.*;
+import com.example.account_service.entities.AccountType;
+import com.example.account_service.entities.accounts;
+import com.example.account_service.repositories.AccountRepository;
 import com.example.account_service.services.AccountService;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -56,5 +59,21 @@ public class AccountController {
                 accountService.transfer(request)
         );
     }
+    @GetMapping("/accounts/savings/active")
+    public ResponseEntity<List<accounts>> getActiveSavingsAccounts(){
+
+        return ResponseEntity.ok(
+                accountService.getActiveSavingsAccounts()
+        );
+
+    }
+
+
+
+
+        @GetMapping("/system-account")
+        public ResponseEntity<AccountResponse> getSystemAccount() {
+            return ResponseEntity.ok(accountService.getSystemAccount());
+        }
 
 }

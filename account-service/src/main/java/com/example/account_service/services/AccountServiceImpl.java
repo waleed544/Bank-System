@@ -2,6 +2,7 @@ package com.example.account_service.services;
 
 import com.example.account_service.DTO.*;
 import com.example.account_service.entities.AccountStatus;
+import com.example.account_service.entities.AccountType;
 import com.example.account_service.entities.accounts;
 import com.example.account_service.exceptions.AccountInactiveException;
 import com.example.account_service.exceptions.AccountNotFoundException;
@@ -151,6 +152,23 @@ public class AccountServiceImpl implements AccountService {
         } while (repository.existsByAccountNumber(accountNumber));
 
         return accountNumber;
+    }
+    public List<accounts> getActiveSavingsAccounts() {
+
+        return repository.findByAccountTypeAndStatus(
+                AccountType.SAVINGS,
+                AccountStatus.ACTIVE
+        );
+
+    }
+
+    @Override
+    public AccountResponse getSystemAccount() {
+
+        accounts account = repository.findByAccountType(AccountType.SYSTEM)
+                .orElseThrow(() -> new RuntimeException("System account not found"));
+
+        return map(account);
     }
 
 

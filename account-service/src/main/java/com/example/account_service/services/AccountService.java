@@ -1,6 +1,7 @@
 package com.example.account_service.services;
 
 import com.example.account_service.DTO.*;
+import com.example.account_service.entities.accounts;
 
 import java.util.List;
 import java.util.UUID;
@@ -14,5 +15,7 @@ public interface AccountService {
     List<AccountResponse> getAccountsByUser(UUID userId);
 
     MessageResponse transfer(TransferRequest request);
+    public List<accounts> getActiveSavingsAccounts();
+    public AccountResponse getSystemAccount();
 
 }
