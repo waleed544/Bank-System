@@ -11,10 +11,9 @@ public class InterestScheduler {
     private final InterestService interestService;
 
     @Scheduled(cron = "0 0 0 * * *")
-    public void runDailyInterest() {
-
+    public void runDailyInterest()
+    {
         interestService.creditDailyInterest();
-
     }
 
 //    @Scheduled(fixedRate = 60000)

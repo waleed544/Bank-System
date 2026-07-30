@@ -22,7 +22,7 @@ public class InterestService {
     private final TransactionService transactionService;
     private final WebClient webClient;
 
-    @Value("${account.service.url:http://localhost:10000}")
+    @Value("${services.account-service.base-url:http://localhost:10000}")
     private String accountServiceUrl;
 
     public void creditDailyInterest() {
